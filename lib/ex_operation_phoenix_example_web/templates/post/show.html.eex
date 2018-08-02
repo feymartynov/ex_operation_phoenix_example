@@ -1,0 +1,114 @@
+<div class="row">
+  <div class="col-sm-8">
+    <h1><%= @post.title %></h1>
+  </div>
+
+  <%= if @conn.assigns.current_user.id == @post.author_id do %>
+    <div class="col-sm-4">
+      <div class="header-controls">
+        <%= link gettext("Edit"),
+              to: post_path(@conn, :edit, @post.id),
+              class: "btn btn-default" %>
+
+        <%= link gettext("Delete"),
+              to: post_path(@conn, :delete, @post.id),
+              method: :delete,
+              class: "btn btn-danger" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<article><%= simple_format(@post.text) %></article>
+<hr />
+
+<dl class="dl-horizontal">
+  <dt><%= gettext("Created at") %></dt>
+  <dd><%= @post.inserted_at %></dd>
+
+  <dt><%= gettext("Author") %></dt>
+  <dd><%= @post.author.name %></dd>
+
+  <%= if @post.tags |> Enum.any?() do %>
+    <dt><%= gettext("Tags") %></dt>
+    <dd>
+      <ul class="list-inline m-none">
+        <li>
+          <%= for tag <- @post.tags do %>
+            <%= link tag.name,
+                  to: post_path(@conn, :index, tag: tag.name),
+                  class: "label label-info" %>
+          <% end %>
+        </li>
+      </ul>
+    </dd>
+  <% end %>
+</dl>
+
+<hr />
+
+<%= if @post.comments |> Enum.any?() do %>
+  <h3><%= gettext("Comments") %> <span class="badge"><%= @post.comments_count %></span></h3>
+
+  <ul class="list-unstyled">
+    <%= for comment <- @post.comments do %>
+      <li>
+        <p>
+          <strong><%= comment.author.name %></strong>
+          <small class="text-muted"><%= comment.inserted_at %></small>
+
+          <%= if comment.author.id == @conn.assigns.current_user.id do %>
+            <%= link gettext("edit"),
+                  to: post_path(@conn, :show, @post.id, edit_comment: comment.id),
+                  class: "btn btn-xs btn-default" %>
+
+            <%= link gettext("delete"),
+                  to: post_comment_path(@conn, :delete, @post.id, comment.id),
+                  method: :delete,
+                  class: "btn btn-xs btn-danger" %>
+          <% end %>
+        </p>
+
+        <%= if to_string(comment.id) == @conn.params["edit_comment"] do %>
+          <%= form_for @edit_comment_changeset,
+                post_comment_path(@conn, :update, @post.id, comment.id),
+                [as: "comment", method: :put],
+                fn f -> %>
+
+            <div class="form-group">
+              <%= textarea f, :text,
+                    class: "form-control",
+                    rows: 5,
+                    required: true,
+                    value: comment.text %>
+
+              <%= error_tag f, :text %>
+            </div>
+
+            <%= submit gettext("Save"), class: "btn btn-primary" %>
+
+            <%= link gettext("Cancel"),
+                  to: post_path(@conn, :show, @post.id),
+                  class: "btn btn-default" %>
+          <% end %>
+        <% else %>
+          <p><%= simple_format(comment.text) %></p>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+
+<h4><%= gettext("Write comment") %></h4>
+<%= form_for @new_comment_changeset,
+      post_comment_path(@conn, :create, @post.id),
+      [as: "comment"],
+      fn f -> %>
+
+  <div class="form-group">
+    <%= textarea f, :text, class: "form-control", rows: 5, required: true %>
+    <%= error_tag f, :text %>
+  </div>
+
+  <%= submit gettext("Send"), class: "btn btn-primary" %>
+<% end %>

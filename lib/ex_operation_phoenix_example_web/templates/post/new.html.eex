@@ -1,0 +1,5 @@
+<h1><%= gettext("New post") %></h1>
+
+<%= form_for @changeset, post_path(@conn, :create), [as: "post"], fn f -> %>
+  <%= render "_fields.html", conn: @conn, f: f %>
+<% end %>

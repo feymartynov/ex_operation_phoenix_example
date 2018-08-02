@@ -1,0 +1,9 @@
+<h1><%= gettext("Edit post") %></h1>
+
+<%= form_for @changeset,
+      post_path(@conn, :update, @conn.params["id"]),
+      [as: "post", method: :put],
+      fn f -> %>
+
+  <%= render "_fields.html", conn: @conn, f: f %>
+<% end %>
